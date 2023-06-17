@@ -47,8 +47,8 @@ _syscall3 (int, sched_getaffinity, pid_t, pid, unsigned int, len, unsigned long 
 #endif
 
 #ifdef __arm__
-#define __NR_sched_setattr		380
-#define __NR_sched_getattr		381
+// #define __NR_sched_setattr		380
+// #define __NR_sched_getattr		381
 #endif
 
 #define SF_SIG_RORUN	2

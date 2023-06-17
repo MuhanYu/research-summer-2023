@@ -1,7 +1,7 @@
 # Ignore files without extensions
-# *
-# !/**/
-# !*.*
+*
+!/**/
+!*.*
 
 # Prerequisites
 *.d
