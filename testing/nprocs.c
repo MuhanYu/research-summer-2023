@@ -32,6 +32,8 @@ void work(int option) {
         unused = i * i * i;
     }
 
+    while (1);
+
     if (option) exit(0);
 }
 
