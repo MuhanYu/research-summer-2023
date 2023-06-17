@@ -6,7 +6,6 @@
 #include <getopt.h>
 #include <signal.h>
 
-#define NCHILD      2
 #define ITERS       2000000000
 
 #define OPT_PARENT  0
@@ -36,15 +35,17 @@ void work(int option) {
 }
 
 int main(int argc, char *argv[]) {
-    int i, status;
+    int i, status, nchildren;
     pid_t pid;
     struct sigaction sa;
-    
+
     sa.sa_sigaction = sig_handler;
     sa.sa_flags = SA_RESTART | SA_SIGINFO;
     sigaction(SIGUSR1, &sa, NULL);
 
-    for (i = 0; i < NCHILD; i++) {
+    nchildren = atoi(argv[1]);
+
+    for (i = 0; i < nchildren; i++) {
         pid = fork();
         if (pid == 0) {
             work(OPT_CHILD);
