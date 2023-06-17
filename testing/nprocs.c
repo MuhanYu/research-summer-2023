@@ -1,15 +1,13 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-#include <errno.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <getopt.h>
 #include <signal.h>
 
-#define NPROCS      2
-#define ITERS       3000000000
+#define NCHILD      2
+#define ITERS       2000000000
 
 #define OPT_PARENT  0
 #define OPT_CHILD   1
@@ -41,11 +39,12 @@ int main(int argc, char *argv[]) {
     int i, status;
     pid_t pid;
     struct sigaction sa;
+    
     sa.sa_sigaction = sig_handler;
     sa.sa_flags = SA_RESTART | SA_SIGINFO;
     sigaction(SIGUSR1, &sa, NULL);
 
-    for (i = 0; i < NPROCS; i++) {
+    for (i = 0; i < NCHILD; i++) {
         pid = fork();
         if (pid == 0) {
             work(OPT_CHILD);
