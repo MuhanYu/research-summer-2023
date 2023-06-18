@@ -1,3 +1,11 @@
+/*
+    nprocs.c:
+    Create a few processes to do meaningless work. Sychronize each process
+    with the delivery of SIGUSR1 signal.
+
+    Usage: ./nprocs <number of processes>
+*/
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>

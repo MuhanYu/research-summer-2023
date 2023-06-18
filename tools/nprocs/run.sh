@@ -1,7 +1,9 @@
 #!/bin/bash
 
 ##############################################################
-# Tracing processes, adding them to appropriate cgroups.
+# run.sh: 
+# Trace processes created by nprocs,
+# add them to appropriate cgroups.
 ##############################################################
 
 temp_proc_file="procs_temp.txt"
