@@ -6,7 +6,9 @@
 #include <getopt.h>
 #include <signal.h>
 
-#define ITERS       2000000
+#define ITERS               2000000
+#define TEMP_PROCS_FILE     "procs_temp.txt"
+#define MAX_BUF             10
 
 #define OPT_PARENT  0
 #define OPT_CHILD   1
@@ -19,10 +21,23 @@ void sig_handler(int signum, siginfo_t *si, void *ucontext){
 
 void work(int option) {
     long i, j, unused;
+    pid_t pid;
+    FILE *fp;
 
-    fprintf(stderr, "pid: %ld\n", (long) getpid());
+    fp = fopen(TEMP_PROCS_FILE, "a");
+    if (fp == NULL) {
+        perror("fopen()");
+        exit(-1);
+    }
+
+    pid = getpid();
+
+    fprintf(fp, "%ld\n", (long) pid);
+    fclose(fp);
+    printf("pid: %ld\n", (long) pid);
+
     while (!done) {}
-    fprintf(stderr, "Signal received!\n");
+    printf("Signal received!\n");
 
     // meaningless work
     for (i = 0; i < ITERS; i++) {
@@ -37,6 +52,7 @@ void work(int option) {
 int main(int argc, char *argv[]) {
     int i, status, nchildren;
     pid_t pid;
+    char str[MAX_BUF];
     struct sigaction sa;
 
     sa.sa_sigaction = sig_handler;
