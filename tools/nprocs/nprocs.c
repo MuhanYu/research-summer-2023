@@ -6,7 +6,7 @@
 #include <getopt.h>
 #include <signal.h>
 
-#define ITERS       2000000000
+#define ITERS       2000000
 
 #define OPT_PARENT  0
 #define OPT_CHILD   1
@@ -18,7 +18,7 @@ void sig_handler(int signum, siginfo_t *si, void *ucontext){
 }
 
 void work(int option) {
-    long i, unused;
+    long i, j, unused;
 
     fprintf(stderr, "pid: %ld\n", (long) getpid());
     while (!done) {}
@@ -26,10 +26,10 @@ void work(int option) {
 
     // meaningless work
     for (i = 0; i < ITERS; i++) {
-        unused = i * i * i;
+        for (j = 0; j < ITERS; j++) {
+            unused = j * j * j;
+        }
     }
-
-    while (1);
 
     if (option) exit(0);
 }

@@ -1,0 +1,4 @@
+1.  cgroup-v2 cpu controller cannot be enabled when the kernel is compiled 
+    with CONFIG_RT_GROUP_SCHED.
+
+2.  
