@@ -1,0 +1,7 @@
+{F/R}.2p.2cg.1cpupcg.500000us.trace.dat
+
+<RT policy>.<number of nprocs processes>.<number of cgroups>.<number of cpus per cgroup>.<cpu.rt_runtime_us>
+
+The number of nprocs processes should be a multiple of the number of cgroups.
+Each cgroup has (num_procs/num_cgroups) processes.
+Each cgroup is assigned unique one or two cpu(s) (NOT exclusively).

@@ -13,9 +13,11 @@ exe_file="nprocs"
 
 sleep_time=10
 
+rt_policy="R"
+
 # num_procs should be a multiple of num_cgroups
 # each cgroup has (num_procs/num_cgroups) processes 
-num_procs=2
+num_procs=4
 num_cgroups=2
 
 num_cpus=4
@@ -56,8 +58,8 @@ rm -f $temp_proc_file
 
 trace_pid=0
 trace-cmd record -e sched_switch \
-    -o ${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
-    ../schedtool/schedtool -R -p 90 -e ./$exe_file $((num_procs-1)) &> /dev/null &
+    -o ${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    ../schedtool/schedtool -${rt_policy} -p 90 -e ./$exe_file $((num_procs-1)) &> /dev/null &
 trace_pid=$!
 
 echo "tracing started..."
@@ -96,8 +98,8 @@ echo "SIGKILL sent..."
 # move trace file to /traces
 wait $trace_pid 
 echo "tracing completed..."
-mv ${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
-    ../../traces/no_check_rt_group_sched/
+mv ${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
 
 # remove cgroups
 for (( i=0; i<$num_cgroups; i++ ))
