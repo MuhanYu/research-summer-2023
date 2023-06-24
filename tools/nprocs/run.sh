@@ -14,7 +14,7 @@ num_cpus=4 # const
 
 sleep_time=10
 
-rt_policy="F"
+rt_policy="R"
 
 # num_procs should be a multiple of num_cgroups
 # each cgroup has (num_procs/num_cgroups) processes 
