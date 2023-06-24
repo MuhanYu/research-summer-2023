@@ -10,6 +10,7 @@ temp_proc_file="procs_temp.txt"
 trace_file="trace.dat"
 source_file="nprocs.c"
 exe_file="nprocs"
+num_cpus=4 # const
 
 sleep_time=10
 
@@ -18,13 +19,11 @@ rt_policy="R"
 # num_procs should be a multiple of num_cgroups
 # each cgroup has (num_procs/num_cgroups) processes 
 num_procs=4
-num_cgroups=2
-
-num_cpus=4
-num_cpus_per_cgroup=2
+num_cgroups=4
+num_cpus_per_cgroup=1
 
 # cpu.rt_runtime_us interface file
-rt_runtime_us=300000
+rt_runtime_us=700000
 
 # setup cgroups
 for (( i=0; i<$num_cgroups; i++ ))
