@@ -6,6 +6,11 @@
     Usage: ./nprocs <number of processes>
 */
 
+#ifdef MANUAL
+#define _GNU_SOURCE 
+#include <sched.h>
+#endif
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -31,6 +36,15 @@ void work(int option) {
     long i, j, unused;
     pid_t pid;
     FILE *fp;
+
+    #ifdef MANUAL
+    struct sched_param param;
+    param.sched_priority = 90;
+    if (sched_setscheduler(0, SCHED_RR, &param)) {
+        perror("sched_setscheduler()");
+        exit(-1);
+    }
+    #endif
 
     fp = fopen(TEMP_PROCS_FILE, "a");
     if (fp == NULL) {

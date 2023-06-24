@@ -14,6 +14,8 @@ num_cpus=4 # const
 
 sleep_time=10
 
+manual=1
+
 rt_policy="R"
 
 # num_procs should be a multiple of num_cgroups
@@ -50,15 +52,28 @@ done
 echo "cgroups created..."
 
 rm -f $exe_file
-gcc $source_file -o $exe_file
+
+if [ $manual -eq 1 ]
+then
+    gcc -o $exe_file -DMANUAL $source_file
+else
+    gcc -o $exe_file $source_file
+fi
 
 rm -f $trace_file
 rm -f $temp_proc_file
 
 trace_pid=0
-trace-cmd record -e sched_switch \
+if [ $manual -eq 1 ]
+then
+    sudo trace-cmd record -e sched_switch \
+    -o m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    ./nprocs 7 &> /dev/null &
+else
+    trace-cmd record -e sched_switch \
     -o ${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../schedtool/schedtool -${rt_policy} -p 90 -e ./$exe_file $((num_procs-1)) &> /dev/null &
+fi
 trace_pid=$!
 
 echo "tracing started..."
@@ -97,8 +112,15 @@ echo "SIGKILL sent..."
 # move trace file to /traces
 wait $trace_pid 
 echo "tracing completed..."
-mv ${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+
+if [ $manual -eq 1 ]
+then
+    mv m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
+else
+    mv ${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
+fi
 
 # remove cgroups
 for (( i=0; i<$num_cgroups; i++ ))

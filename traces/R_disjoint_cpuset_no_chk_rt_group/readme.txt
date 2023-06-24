@@ -2,3 +2,6 @@ It seems that for the traces with 8 SCHED_RR procs, the runtime balance mechanis
 is off. Some procs are getting a lot more runtime than others.
 
 This error is due to using the schedtool program...
+
+The "manual" "<m.>" trace files use a call to sched_setscheduler within the nprocs program
+instead of the schedtool program.
