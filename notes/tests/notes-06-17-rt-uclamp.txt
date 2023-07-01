@@ -1,0 +1,29 @@
+Notes on uclamp and autogroup
+
+1.  cgroup-v2 cpu controller cannot be enabled when the kernel is compiled 
+    with CONFIG_RT_GROUP_SCHED. uclamp interface files only appears when
+    kernel compiled with CONFIG_UCLAMP_TASK and CONFIG_UCLAMP_TASK_GROUP.
+
+2.  There is no way to "allocate/reserve" bandwidth/runtime for SCHED_OTHER
+    or SCHED_BATCH. For regular kernel compiled with CONFIG_UCLAMP_TASK and 
+    CONFIG_UCLAMP_TASK_GROUP and using cgroup-v2, the sum of cpu.uclamp.min
+    for two child cgroups can exceed 100%. The uclamp values are mere hints
+    to the scheduler. For regular kernel using cgroup-v1, the cpu.cfs_period_us,
+    cpu.cfs_quota_us, cpu.cfs_burst_us cannot be used to allocate bandwidth
+    or runtime either. Especially, cfs_quota_us can be larger than cfs_period_us
+    even within a single cgroup, in this case the processes in the cgroup
+    are limited to more than one cpu worth of runtime within each period.
+    This interface is used for _limiting_ the processes rather than _allocating_
+    runtime for them.
+
+3.  When starting with a group of SCHED_OTHER tasks and then move two processes
+    to SCHED_RR, the /proc fs will indicate that they now have RT scheduling 
+    params. However, their autogroup membership (/proc/[pid]/autogroup) is
+    unchanged. There does not seem to be a way to explicitly check for the
+    struct task_group membership of a task from userspace (not in /proc/[pid]
+    at least). It is my best guess that two processes will be placed in the
+    root RT task group if they are not otherwise placed in a RT cgroup after
+    they are given the SCHED_RR policy.
+
+    The CONFIG_RT_GROUP_SCHED flag does not change this behavior.
+

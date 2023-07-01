@@ -1,0 +1,8 @@
+1.  Verify writing -1 to global real-time runtime limit 
+    (/proc/sys/kernel/sched_rt_runtime_us).
+2.  When is the real-time runtime and period initialized and updated for a process?
+3.  Comment out the ratio enforcing code in real-time group scheduling kernel (in kernel/sched/rt.c).
+4.  Start with a group of SCHED_OTHER tasks. Take 2 out without placing them 
+    in a real-time cgroup. Do these tasks now occupy the same task group? How
+    does autogroup come into play here. Test whether real-time group scheduling
+    makes a difference.

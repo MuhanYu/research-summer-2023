@@ -1,0 +1,25 @@
+Notes on trace files generated using the "no-check" kernel with cgroup v1
+real-time group scheduling enabled. 
+
+Using the "nprocs" program:
+
+1.  The use of the schedtool program to launch the processes causes a problem
+    when there are 8 procs, 2 cgroups, and 2 cpus per cgroup. 
+    
+    If schedtool is envoked with SCHED_RR policy, then time-sharing among the eight
+    processes is not correct. Some processes will run for a lot longer than 
+    others.
+
+    If the processes are instead manually launched with sched_setscheduler()
+    within the nprocs program, then everything is fine.
+
+2.  When there are 8 procs, 2 cgroups, and 2 cpus per cgroup, run.sh script cannot 
+    be used to effectively study the behavior of FIFO processes and their
+    interactions with cgroups. Since there are only 4 cpus, only 4 processes will run
+    initialially and write their pids to "procs_temp.txt". Therefore only these 4
+    processes will be added to the cgroup. Only after the 4 initial processes were
+    added to the cgroup, the 4 remaining processes that did not get to run in the
+    first place will have a chance to run, thereby writing their pids into
+    "procs_temp.txt". 
+
+    

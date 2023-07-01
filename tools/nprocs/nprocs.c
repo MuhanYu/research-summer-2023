@@ -19,6 +19,11 @@
 #include <getopt.h>
 #include <signal.h>
 
+#ifdef MANUAL
+#define POLICY      SCHED_RR
+#define PRIO        90
+#endif
+
 #define ITERS               2000000
 #define TEMP_PROCS_FILE     "procs_temp.txt"
 #define MAX_BUF             10
@@ -39,8 +44,8 @@ void work(int option) {
 
     #ifdef MANUAL
     struct sched_param param;
-    param.sched_priority = 90;
-    if (sched_setscheduler(0, SCHED_RR, &param)) {
+    param.sched_priority = PRIO;
+    if (sched_setscheduler(0, POLICY, &param)) {
         perror("sched_setscheduler()");
         exit(-1);
     }

@@ -1,0 +1,9 @@
+1.  Check task_group membership for tasks using a kernel module?
+2.  Run Prof. Sudvarg's test code for four cpus in no_check_rt_group_sched kernel?
+3.  Looking through the traces.
+4.  Look through poly paper.
+5.  cpu.max interface for group-v2
+6.  70/100 70/100 what happens when the period expires and the second task hasn't 
+    finish its runtime yet. Pin the tasks to the same core[s]. What if two tasks 
+    are the same/different priorities? Try RR and FIFO. 
+7.  Use newer versions of the kernel.

@@ -1,7 +1,18 @@
-{F/R}.2p.2cg.1cpupcg.500000us.trace.dat
+<m>.{F/R}.2p.2cg.1cpupcg.500000us.trace.dat
 
 [is manual?].<RT policy>.<number of nprocs processes>.<number of cgroups>.<number of cpus per cgroup>.<cpu.rt_runtime_us>
 
-The number of nprocs processes should be a multiple of the number of cgroups.
-Each cgroup has (num_procs/num_cgroups) processes.
-Each cgroup is assigned unique one or two cpu(s) (NOT exclusively).
+
+1.  Is manual means whether the processes change their policy through 
+    sched_setscheduler() ("manual"), or, the processes are launched by schedtool.
+
+2.  F - SCHED_FIFO
+    R - SCHED_RR
+
+3.  The number of nprocs processes should be a multiple of the number of cgroups.
+
+4.  Each cgroup has (num_procs/num_cgroups) processes.
+
+5.  Each cgroup is assigned one or two cpu(s) uniquely (although they do NOT 
+    have exlusive access to the said cpus, i.e. cpuset.cpu_exclusive flag is
+    NOT set).
