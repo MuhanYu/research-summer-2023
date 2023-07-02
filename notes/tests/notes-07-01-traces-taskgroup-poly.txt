@@ -62,22 +62,27 @@ Using the "nprocs" program:
     ---------------------------------------------------------------------------------------------------------
 
     If the scheduling policy is instead changed with sched_setscheduler() in the
-    child processes, then everything is fine. The time sharing between SCHED_RR
-    tasks are correct.
+    child processes after fork(), then everything is fine. The time sharing between 
+    SCHED_RR tasks are correct before and after being added to the two cgroups.
 
     It is unclear why this is the case. 
 
-    Sidenote: when using 8 procs, 1 cgroup, and 1 cpu per cgroup, we see that 
+    ******************************************************************************
+    SIDENOTE: when using 8 procs, 1 cgroup, and 1 cpu per cgroup, we see that 
+    time sharing among 8 processes is the same regardless how the scheduling
+    policies were manipulated. The runtime is divided evenly across 8 processes.
 
-2.  When there are 8 procs, 2 cgroups, and 2 cpus per cgroup, run.sh script cannot 
-    be used to effectively study the behavior of FIFO processes and their
-    interactions with cgroups. Since there are only 4 cpus, only 4 processes will run
-    initialially and write their pids to "procs_temp.txt". Therefore only these 4
-    processes will be added to the cgroup. Only after the 4 initial processes were
+2.  When there are 8 procs, 2 cgroups, and 2 cpus per cgroup, the vanila run.sh 
+    cannot be used to effectively study the behavior of FIFO processes and their
+    interactions with cgroups. Since there are only 4 cpus, only 4 processes will 
+    run initialially and write their pids to "procs_temp.txt". Therefore only these 
+    4 processes will be added to the cgroup. Only after the 4 initial processes were
     added to the cgroup, the 4 remaining processes that did not get to run in the
     first place will have a chance to run, thereby writing their pids into
     "procs_temp.txt". 
 
-    If instead we try to read "procs_temp.txt" twice (thus allowing the second batch
-    of 4 processes add their pids), then we find that...
+    We can instead use a modified version run_fifo.sh, which checks exactly how many
+    processes are the the cgroups right now, using the "tasks" file. The script only 
+    stop adding more processes when the combined number of procs in those tasks files
+    is the same as the the number of processes initially spawned.
 
