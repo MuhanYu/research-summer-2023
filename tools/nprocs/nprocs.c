@@ -88,6 +88,15 @@ int main(int argc, char *argv[]) {
 
     nchildren = atoi(argv[1]);
 
+    // #ifdef MANUAL
+    // struct sched_param param;
+    // param.sched_priority = PRIO;
+    // if (sched_setscheduler(0, POLICY, &param)) {
+    //     perror("sched_setscheduler()");
+    //     exit(-1);
+    // }
+    // #endif
+
     for (i = 0; i < nchildren; i++) {
         pid = fork();
         if (pid == 0) {

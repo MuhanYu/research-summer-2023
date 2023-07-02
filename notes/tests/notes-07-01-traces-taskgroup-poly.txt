@@ -8,7 +8,9 @@ Using the "nprocs" program:
     
     If schedtool is envoked with SCHED_RR policy, then time-sharing among the eight
     processes is not correct. Some processes will run for a lot longer than 
-    others.
+    others. When using "./nprocs 8" to investigate this behavior, it could be seen 
+    that the first three nprocs processes were granted exclusive access to the first
+    three cpus, while the rest of the five processes have the share the last cpu. 
 
     If the processes are instead manually launched with sched_setscheduler()
     within the nprocs program, then everything is fine.
@@ -22,4 +24,3 @@ Using the "nprocs" program:
     first place will have a chance to run, thereby writing their pids into
     "procs_temp.txt". 
 
-    

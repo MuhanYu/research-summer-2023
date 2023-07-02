@@ -14,9 +14,9 @@ num_cpus=4 # const
 
 sleep_time=10
 
-manual=0
+manual=1
 
-rt_policy="F"
+rt_policy="R"
 
 # num_procs should be a multiple of num_cgroups
 # each cgroup has (num_procs/num_cgroups) processes 
@@ -25,7 +25,7 @@ num_cgroups=2
 num_cpus_per_cgroup=2
 
 # cpu.rt_runtime_us interface file
-rt_runtime_us=300000
+rt_runtime_us=700000
 
 # setup cgroups
 for (( i=0; i<$num_cgroups; i++ ))
@@ -68,12 +68,12 @@ rm -f $temp_proc_file
 trace_pid=0
 if [ $manual -eq 1 ]
 then
-    sudo trace-cmd record -e sched_switch \
-    -o TWICE.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    trace-cmd record -e sched_switch \
+    -o m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ./nprocs 7 &> /dev/null &
 else
     trace-cmd record -e sched_switch \
-    -o TWICE.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    -o ${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../schedtool/schedtool -${rt_policy} -p 90 -e ./$exe_file $((num_procs-1)) &> /dev/null &
 fi
 trace_pid=$!
@@ -95,23 +95,7 @@ do
     # add to RT cgroups
     echo $line > /sys/fs/cgroup/cpu,cpuacct/$((index%num_cgroups))/tasks
     index=$((index+1))
-done < $temp_proc_file
-
-######################################################
-sleep 5
-while read -r line
-do
-    # add to cpuset cgroups
-    # each cgroup has a single effective cpu
-    echo $line > /sys/fs/cgroup/cpuset/$((index%num_cgroups))/tasks
-    # add to RT cgroups
-    echo $line > /sys/fs/cgroup/cpu,cpuacct/$((index%num_cgroups))/tasks
-    index=$((index+1))
-done < $temp_proc_file
-#######################################################
-#######################################################
-# ALL PROCS SHOULD BE IN CGROUPS NOW
-#######################################################
+done < $temp_proc_file 
 
 echo "added to cgroups..."
 sleep $sleep_time
@@ -127,10 +111,10 @@ echo "tracing completed..."
 
 if [ $manual -eq 1 ]
 then
-    mv TWICE.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    mv m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
 else
-    mv TWICE.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    mv ${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
 fi
 
