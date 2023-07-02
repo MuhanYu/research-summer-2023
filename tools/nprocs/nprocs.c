@@ -6,7 +6,11 @@
     Usage: ./nprocs <number of processes>
 */
 
-#ifdef MANUAL
+#ifdef PMANUAL
+#define _GNU_SOURCE 
+#include <sched.h>
+#endif
+#ifdef CMANUAL
 #define _GNU_SOURCE 
 #include <sched.h>
 #endif
@@ -19,7 +23,7 @@
 #include <getopt.h>
 #include <signal.h>
 
-#ifdef MANUAL
+#if defined (CMANUAL) || defined (PMANUAL)
 #define POLICY      SCHED_RR
 #define PRIO        90
 #endif
@@ -42,7 +46,7 @@ void work(int option) {
     pid_t pid;
     FILE *fp;
 
-    #ifdef MANUAL
+    #ifdef CMANUAL
     struct sched_param param;
     param.sched_priority = PRIO;
     if (sched_setscheduler(0, POLICY, &param)) {
@@ -88,14 +92,14 @@ int main(int argc, char *argv[]) {
 
     nchildren = atoi(argv[1]);
 
-    // #ifdef MANUAL
-    // struct sched_param param;
-    // param.sched_priority = PRIO;
-    // if (sched_setscheduler(0, POLICY, &param)) {
-    //     perror("sched_setscheduler()");
-    //     exit(-1);
-    // }
-    // #endif
+    #ifdef PMANUAL
+    struct sched_param param;
+    param.sched_priority = PRIO;
+    if (sched_setscheduler(0, POLICY, &param)) {
+        perror("sched_setscheduler()");
+        exit(-1);
+    }
+    #endif
 
     for (i = 0; i < nchildren; i++) {
         pid = fork();
