@@ -1,9 +1,8 @@
 #!/bin/bash
 
 #####################################################################
-# run.sh: 
-# Trace processes created by nprocs, create and add them to 
-# cpu and cpuset cgroups for investigating CONFIG_RT_GROUP_SCHED.
+# run_fifo.sh: 
+# Slightly modified version of run.sh for SCHED_FIFO
 #####################################################################
 
 temp_proc_file="procs_temp.txt"

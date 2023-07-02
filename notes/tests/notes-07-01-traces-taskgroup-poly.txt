@@ -6,14 +6,63 @@ Using the "nprocs" program:
 1.  The use of the schedtool program to launch the processes causes a problem
     when there are 8 procs, 2 cgroups, and 2 cpus per cgroup. 
     
-    If schedtool is envoked with SCHED_RR policy, then time-sharing among the eight
-    processes is not correct. Some processes will run for a lot longer than 
-    others. When using "./nprocs 8" to investigate this behavior, it could be seen 
-    that the first three nprocs processes were granted exclusive access to the first
-    three cpus, while the rest of the five processes have the share the last cpu. 
+    If schedtool is envoked with SCHED_RR policy, then time-sharing among the 
+    eight processes is not correct. Some processes will run for a lot longer 
+    than others. When using "./nprocs 7" to investigate this behavior, it could 
+    be seen that the first three nprocs processes were granted exclusive access 
+    to the first three cpus, while the rest of the five processes have the share 
+    the last cpu.
 
-    If the processes are instead manually launched with sched_setscheduler()
-    within the nprocs program, then everything is fine.
+    This problem can be replicated if sched_setscheduler() is called in the parent 
+    before fork(). This problem is NOT due to the "reset-on-fork" scheduling flag; 
+    each child indeed have SCHED_RR policy (see below):
+
+    ---------------------------------------------------------------------------------------------------------
+    # compiling with sched_setschedular() before fork()ing children
+    pi@muhanyupi:~/research/tools/nprocs $ gcc -o nprocs -DPMANUAL nprocs.c
+    pi@muhanyupi:~/research/tools/nprocs $ ./nprocs.c 7
+    bash: ./nprocs.c: Permission denied
+    pi@muhanyupi:~/research/tools/nprocs $ ./nprocs 7
+    pid: 13050
+    pid: 13049
+    pid: 13051
+    pid: 13048
+    pid: 13052
+    pid: 13053
+    pid: 13054
+    pid: 13055
+    ^C
+    pi@muhanyupi:~/research/tools/nprocs $ 
+
+    # check scheduling policy (using schedtool leads to the same result)
+    [root@muhanyupi /home/pi/research/tools/nprocs] # ps -e -o s,pid | grep ^R | awk '{system("chrt -p " $2)}'
+    pid 12608's current scheduling policy: SCHED_OTHER
+    pid 12608's current scheduling priority: 0
+    pid 13048's current scheduling policy: SCHED_RR
+    pid 13048's current scheduling priority: 90
+    pid 13049's current scheduling policy: SCHED_RR
+    pid 13049's current scheduling priority: 90
+    pid 13050's current scheduling policy: SCHED_RR
+    pid 13050's current scheduling priority: 90
+    pid 13051's current scheduling policy: SCHED_RR
+    pid 13051's current scheduling priority: 90
+    pid 13052's current scheduling policy: SCHED_RR
+    pid 13052's current scheduling priority: 90
+    pid 13053's current scheduling policy: SCHED_RR
+    pid 13053's current scheduling priority: 90
+    pid 13054's current scheduling policy: SCHED_RR
+    pid 13054's current scheduling priority: 90
+    pid 13055's current scheduling policy: SCHED_RR
+    pid 13055's current scheduling priority: 90
+    chrt: failed to get pid 13123's policy: No such process
+    chrt: failed to get pid 13124's policy: No such process
+    ---------------------------------------------------------------------------------------------------------
+
+    If the scheduling policy is instead changed with sched_setscheduler() in the
+    child processes, then everything is fine. The time sharing between SCHED_RR
+    tasks are correct.
+
+    It is unclear why this is the case. 
 
 2.  When there are 8 procs, 2 cgroups, and 2 cpus per cgroup, run.sh script cannot 
     be used to effectively study the behavior of FIFO processes and their
@@ -23,4 +72,7 @@ Using the "nprocs" program:
     added to the cgroup, the 4 remaining processes that did not get to run in the
     first place will have a chance to run, thereby writing their pids into
     "procs_temp.txt". 
+
+    If instead we try to read "procs_temp.txt" twice (thus allowing the second batch
+    of 4 processes add their pids), then we find that...
 

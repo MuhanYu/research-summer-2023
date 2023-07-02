@@ -6,11 +6,7 @@
     Usage: ./nprocs <number of processes>
 */
 
-#ifdef PMANUAL
-#define _GNU_SOURCE 
-#include <sched.h>
-#endif
-#ifdef CMANUAL
+#if defined (CMANUAL) || defined (PMANUAL) 
 #define _GNU_SOURCE 
 #include <sched.h>
 #endif
@@ -23,7 +19,7 @@
 #include <getopt.h>
 #include <signal.h>
 
-#if defined (CMANUAL) || defined (PMANUAL)
+#if defined (CMANUAL) || defined (PMANUAL) 
 #define POLICY      SCHED_RR
 #define PRIO        90
 #endif
