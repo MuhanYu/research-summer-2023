@@ -57,7 +57,7 @@ rm -f $exe_file
 # setting of sched policy? (via sched_setscheduler()?)
 if [ $manual -eq 1 ]
 then
-    gcc -o $exe_file -DMANUAL $source_file
+    gcc -o $exe_file -DCMANUAL $source_file
 else
     gcc -o $exe_file $source_file
 fi
