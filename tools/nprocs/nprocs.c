@@ -19,8 +19,12 @@
 #include <getopt.h>
 #include <signal.h>
 
-#if defined (CMANUAL) || defined (PMANUAL) 
-#define POLICY      SCHED_RR
+#if defined (CMANUAL) || defined (PMANUAL)
+#ifdef  FIFO
+#define POLICY      SCHED_FIFO
+#else
+#define POLICY      SCHED_RR 
+#endif
 #define PRIO        90
 #endif
 

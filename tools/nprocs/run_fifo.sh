@@ -14,7 +14,7 @@ num_cpus=4 # const
 sleep_time=10
 wait_time=2
 
-manual=1
+manual=0
 
 rt_policy="F"
 
@@ -57,9 +57,9 @@ rm -f $exe_file
 # setting of sched policy? (via sched_setscheduler()?)
 if [ $manual -eq 1 ]
 then
-    gcc -o $exe_file -DCMANUAL $source_file
+    gcc -o $exe_file -DCMANUAL -DFIFO $source_file
 else
-    gcc -o $exe_file $source_file
+    gcc -o $exe_file -DFIFO $source_file
 fi
 
 rm -f $trace_file
@@ -69,11 +69,11 @@ trace_pid=0
 if [ $manual -eq 1 ]
 then
     trace-cmd record -e sched_switch \
-    -o ${wait_time}.TWICE.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    -o ${wait_time}.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ./nprocs 7 &> /dev/null &
 else
     trace-cmd record -e sched_switch \
-    -o ${wait_time}.TWICE.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    -o ${wait_time}.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../schedtool/schedtool -${rt_policy} -p 90 -e ./$exe_file $((num_procs-1)) &> /dev/null &
 fi
 trace_pid=$!
@@ -87,30 +87,31 @@ sleep $sleep_time
 
 # add to cgroup
 index=0
-while read -r line
+while [ $index -lt $num_procs ]
 do
-    # add to cpuset cgroups
-    # each cgroup has a single effective cpu
-    echo $line > /sys/fs/cgroup/cpuset/$((index%num_cgroups))/tasks
-    # add to RT cgroups
-    echo $line > /sys/fs/cgroup/cpu,cpuacct/$((index%num_cgroups))/tasks
-    index=$((index+1))
-done < $temp_proc_file 
-
-###########################################################################
-sleep $wait_time
-while read -r line
-do
-    # add to cpuset cgroups
-    # each cgroup has a single effective cpu
-    echo $line > /sys/fs/cgroup/cpuset/$((index%num_cgroups))/tasks
-    # add to RT cgroups
-    echo $line > /sys/fs/cgroup/cpu,cpuacct/$((index%num_cgroups))/tasks
-    index=$((index+1))
-done < $temp_proc_file 
-###########################################################################
-# ALL PROCESSES SHOULD BE IN CGROUPS NOW
-###########################################################################
+    while read -r line
+    do
+        # calculate current index based on the total number of procs
+        # already in cgroups. Duplicate PIDS are not an issue because
+        # they are only generated when the process got moved to another 
+        # cgroup and then back or the PID got recycled while reading
+        index=0
+        for (( i=0; i<$num_cgroups; i++))
+        do
+            temp=$(wc -l < /sys/fs/cgroup/cpuset/$((i))/tasks)
+            index=$((index+temp))
+        done
+        if [ $index -eq $num_procs ]
+        then
+            break
+        fi
+        # add to cpuset cgroups
+        # each cgroup has a single effective cpu
+        echo $line > /sys/fs/cgroup/cpuset/$((index%num_cgroups))/tasks
+        # add to RT cgroups
+        echo $line > /sys/fs/cgroup/cpu,cpuacct/$((index%num_cgroups))/tasks
+    done < $temp_proc_file 
+done
 
 echo "added to cgroups..."
 sleep $sleep_time
@@ -126,10 +127,10 @@ echo "tracing completed..."
 
 if [ $manual -eq 1 ]
 then
-    mv ${wait_time}.TWICE.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    mv ${wait_time}.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
 else
-    mv ${wait_time}.TWICE.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    mv ${wait_time}.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
 fi
 
