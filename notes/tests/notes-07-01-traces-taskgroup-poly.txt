@@ -8,7 +8,10 @@ Using the "nprocs" program:
     
     If schedtool is envoked with SCHED_RR policy, then time-sharing among the 
     eight processes is not correct. Some processes will run for a lot longer 
-    than others. When using "./nprocs 7" to investigate this behavior, it could 
+    than others. This is true both before and after the tasks are placed into
+    cgroups.
+    
+    When using "./nprocs 7" to investigate this behavior (no cgroups), it could 
     be seen that the first three nprocs processes were granted exclusive access 
     to the first three cpus, while the rest of the five processes have the share 
     the last cpu.
@@ -63,6 +66,8 @@ Using the "nprocs" program:
     tasks are correct.
 
     It is unclear why this is the case. 
+
+    Sidenote: when using 8 procs, 1 cgroup, and 1 cpu per cgroup, we see that 
 
 2.  When there are 8 procs, 2 cgroups, and 2 cpus per cgroup, run.sh script cannot 
     be used to effectively study the behavior of FIFO processes and their
