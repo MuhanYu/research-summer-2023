@@ -63,7 +63,12 @@ then
         gcc -o $exe_file -DCMANUAL $source_file
     fi
 else
-    gcc -o $exe_file -DFIFO $source_file
+    if [ "$rt_policy" == "F" ]
+    then
+        gcc -o $exe_file -DFIFO $source_file
+    else
+        gcc -o $exe_file $source_file
+    fi
 fi
 
 rm -f $trace_file
@@ -74,7 +79,7 @@ if [ $manual -eq 1 ]
 then
     trace-cmd record -e sched_switch \
     -o  safeadd.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
-    ./nprocs 7 &> /dev/null &
+    ./nprocs $((num_procs-1)) &> /dev/null &
 else
     trace-cmd record -e sched_switch \
     -o safeadd.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
