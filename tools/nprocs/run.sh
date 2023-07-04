@@ -21,8 +21,8 @@ rt_policy="R"
 # num_procs should be a multiple of num_cgroups
 # each cgroup has (num_procs/num_cgroups) processes 
 num_procs=8
-num_cgroups=2
-num_cpus_per_cgroup=2
+num_cgroups=1
+num_cpus_per_cgroup=1
 
 # cpu.rt_runtime_us interface file
 rt_runtime_us=300000
