@@ -12,7 +12,6 @@ exe_file="nprocs"
 num_cpus=4 # const
 
 sleep_time=10
-wait_time=2
 
 manual=0
 
@@ -25,7 +24,7 @@ num_cgroups=2
 num_cpus_per_cgroup=2
 
 # cpu.rt_runtime_us interface file
-rt_runtime_us=300000
+rt_runtime_us=700000
 
 # setup cgroups
 for (( i=0; i<$num_cgroups; i++ ))
@@ -69,11 +68,11 @@ trace_pid=0
 if [ $manual -eq 1 ]
 then
     trace-cmd record -e sched_switch \
-    -o ${wait_time}.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    -o  safeadd.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ./nprocs 7 &> /dev/null &
 else
     trace-cmd record -e sched_switch \
-    -o ${wait_time}.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    -o safeadd.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../schedtool/schedtool -${rt_policy} -p 90 -e ./$exe_file $((num_procs-1)) &> /dev/null &
 fi
 trace_pid=$!
@@ -127,10 +126,10 @@ echo "tracing completed..."
 
 if [ $manual -eq 1 ]
 then
-    mv ${wait_time}.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    mv safeadd.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
 else
-    mv ${wait_time}.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    mv safeadd.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
 fi
 

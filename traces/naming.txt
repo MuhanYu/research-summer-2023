@@ -1,7 +1,10 @@
 <m>.{F/R}.2p.2cg.1cpupcg.500000us.trace.dat
 
-[is manual?].<RT policy>.<number of nprocs processes>.<number of cgroups>.<number of cpus per cgroup>.<cpu.rt_runtime_us>
+[is safe add?].[is manual?].<RT policy>.<number of nprocs processes>.<number of cgroups>.<number of cpus per cgroup>.<cpu.rt_runtime_us>
 
+0.  Whether procs were added to cgroups safely (i.e. continuously add procs from
+    the temporary PID file, stop only until the cgroups' "tasks" files have the
+    same number of PIDs as spawned)
 
 1.  Is manual means whether the processes change their policy through 
     sched_setscheduler() ("manual"), or, the processes are launched by schedtool.

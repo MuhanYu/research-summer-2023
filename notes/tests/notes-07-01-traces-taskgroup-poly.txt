@@ -84,5 +84,12 @@ Using the "nprocs" program:
     We can instead use a modified version run_fifo.sh, which checks exactly how many
     processes are the the cgroups right now, using the "tasks" file. The script only 
     stop adding more processes when the combined number of procs in those tasks files
-    is the same as the the number of processes initially spawned.
+    is the same as the the number of processes initially spawned. The only downside
+    of this method is that it must repeatedly check those files. Also, different procs
+    might be added to their cgroups at very different times.
+
+
+Using Prof. Sudvarg's program:
+
+1.  
 
