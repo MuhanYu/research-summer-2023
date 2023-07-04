@@ -25,7 +25,7 @@ num_cgroups=2
 num_cpus_per_cgroup=2
 
 # cpu.rt_runtime_us interface file
-rt_runtime_us=700000
+rt_runtime_us=300000
 
 # setup cgroups
 for (( i=0; i<$num_cgroups; i++ ))

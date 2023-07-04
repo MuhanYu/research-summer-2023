@@ -65,6 +65,8 @@ Using the "nprocs" program:
     child processes after fork(), then everything is fine. The time sharing between 
     SCHED_RR tasks are correct before and after being added to the two cgroups.
 
+    HOWEVER, even though 
+
     It is unclear why this is the case. 
 
     ******************************************************************************
