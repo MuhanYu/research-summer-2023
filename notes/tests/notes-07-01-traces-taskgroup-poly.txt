@@ -62,10 +62,17 @@ Using the "nprocs" program:
     ---------------------------------------------------------------------------------------------------------
 
     If the scheduling policy is instead changed with sched_setscheduler() in the
-    child processes after fork(), then everything is fine. The time sharing between 
-    SCHED_RR tasks are correct before and after being added to the two cgroups.
+    child processes after fork() (still using "./nprocs 7" to test), then 
+    the load mis-balance problem is less frequently observed. However, in some 
+    cases, it still exists, where one core executes 1 proc, 2 cores execute 2 procs
+    each, and the last core execute 3 procs.
 
-    HOWEVER, even though 
+    If we use the manual policy setting described above on the cgroup trials, we
+    notice that the load mis-balance problem still exists when there are 8 procs,
+    1 or 2 cgroups, and 1 or 2 cpus per cgroup. Mis-balance can happen before the
+    procs were added to the cgroups in the same manner described above (1, 2, 2, 3
+    procs per cpu, respectively). Mis-balance was also observed after the processes
+    were added to the cgroups
 
     It is unclear why this is the case. 
 
@@ -83,7 +90,7 @@ Using the "nprocs" program:
     first place will have a chance to run, thereby writing their pids into
     "procs_temp.txt". 
 
-    We can instead use a modified version run_fifo.sh, which checks exactly how many
+    We can instead use a modified version nrun.sh, which checks exactly how many
     processes are the the cgroups right now, using the "tasks" file. The script only 
     stop adding more processes when the combined number of procs in those tasks files
     is the same as the the number of processes initially spawned. The only downside

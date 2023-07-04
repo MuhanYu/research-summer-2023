@@ -5,7 +5,5 @@ Check the scheduling policy of all process:
 ps -e -o s,pid | grep ^R | awk '{system("chrt -p " $2)}'
 
 Use something like this to verify cgroup membership:
-cat cpu,cpuacct/1/tasks cpu,cpuacct/2/tasks cpuset/1/tasks cpuset/2/tasks
-cat cpu,cpuacct/1/cgroup.procs cpu,cpuacct/2/cgroup.procs \
-    cpuset/1/cgroup.procs cpuset/2/cgroup.procs
-
+cat cpuset/0/tasks; echo " "; cat cpuset/1/tasks
+cat cpu/0/tasks; echo " "; cat cpu/1/tasks
