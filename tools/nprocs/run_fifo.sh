@@ -13,7 +13,7 @@ num_cpus=4 # const
 
 sleep_time=10
 
-manual=0
+manual=1
 
 rt_policy="F"
 
@@ -24,7 +24,7 @@ num_cgroups=2
 num_cpus_per_cgroup=2
 
 # cpu.rt_runtime_us interface file
-rt_runtime_us=700000
+rt_runtime_us=300000
 
 # setup cgroups
 for (( i=0; i<$num_cgroups; i++ ))
