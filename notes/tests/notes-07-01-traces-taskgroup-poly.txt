@@ -1,5 +1,17 @@
 Using the kernel module "tg_module" to assess real-time group scheduling:
 
+In rt_group_sched kernel:
+
+Senario #1: spawn a group a SCHED_OTHER, then assign two tasks SCHED_RR,
+observe the task_group membership of all tasks before and after the change.
+
+1.  
+
+In non-rt_group_sched kernel:
+
+Senario #1: spawn a group a SCHED_OTHER, then assign two tasks SCHED_RR,
+observe the task_group membership of all tasks before and after the change.
+
 1.  
 
 
@@ -86,6 +98,7 @@ Using the "nprocs" program to test the "no-check" kernel:
 
     The same load-inbalance issue is also observed when using 4 procs, 1 cgroup, 
     and 2 cpus per cgroup. As before, inbalance only happens occasionally, not always.
+    
     Using 8 procs, 1 cgroup, and 2 cpus per cgroup, we observe that two cores each 
     execute 1 proc and two cores execute 3 procs. When added to cgroups, time-sharing
     is similarly incorrect. However, incorrect time-sharing only happen occasionally,
@@ -131,6 +144,10 @@ Comparison with regular real-time group scheduling kernel:
 
 2.  As before, load-misbalance is also observed when a cgroup has more than 1 proc and
     more than 1 cpu. 
+
+    In the cgroup phase with 8 procs, 2 cgroups, 2 cpus per cgroup, in a cgroup one cpu
+    always execute 1 proc only, while the other cpu is divided between the remaining 3
+    tasks.
 
 
 
