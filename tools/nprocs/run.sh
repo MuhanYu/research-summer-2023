@@ -16,18 +16,18 @@ num_cpus=4 # const
 
 sleep_time=10
 
-manual=0
+manual=1
 
 rt_policy="R"
 
 # num_procs should be a multiple of num_cgroups
 # each cgroup has (num_procs/num_cgroups) processes 
 num_procs=8
-num_cgroups=1
+num_cgroups=2
 num_cpus_per_cgroup=2
 
 # cpu.rt_runtime_us interface file
-rt_runtime_us=700000
+rt_runtime_us=300000
 
 # setup cgroups
 for (( i=0; i<$num_cgroups; i++ ))
@@ -80,8 +80,11 @@ rm -f $temp_proc_file
 trace_pid=0
 if [ $manual -eq 1 ]
 then
+    # trace-cmd record -e sched_switch \
+    # -o  safeadd.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    # ./nprocs $((num_procs-1)) &> /dev/null &
     trace-cmd record -e sched_switch \
-    -o  safeadd.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    -o  812.1.chk.dat \
     ./nprocs $((num_procs-1)) &> /dev/null &
 else
     trace-cmd record -e sched_switch \
@@ -137,14 +140,14 @@ echo "SIGKILL sent..."
 wait $trace_pid 
 echo "tracing completed..."
 
-if [ $manual -eq 1 ]
-then
-    mv safeadd.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
-    ../../traces/no_chk/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
-else
-    mv safeadd.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
-    ../../traces/no_chk/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
-fi
+# if [ $manual -eq 1 ]
+# then
+#     mv safeadd.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+#     ../../traces/no_chk/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
+# else
+#     mv safeadd.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+#     ../../traces/no_chk/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
+# fi
 
 # remove cgroups
 for (( i=0; i<$num_cgroups; i++ ))

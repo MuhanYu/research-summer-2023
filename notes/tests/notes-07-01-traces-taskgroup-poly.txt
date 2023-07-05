@@ -1,7 +1,12 @@
+Using the kernel module "tg_module" to assess real-time group scheduling:
+
+1.  
+
+
 Notes on trace files generated using the "no-check" kernel with cgroup v1
 real-time group scheduling enabled. 
 
-Using the "nprocs" program:
+Using the "nprocs" program to test the "no-check" kernel:
 
 1.  The use of the schedtool program to launch the processes causes a problem
     when there are 8 procs, 2 cgroups, and 2 cpus per cgroup. 
@@ -81,6 +86,10 @@ Using the "nprocs" program:
 
     The same load-inbalance issue is also observed when using 4 procs, 1 cgroup, 
     and 2 cpus per cgroup. As before, inbalance only happens occasionally, not always.
+    Using 8 procs, 1 cgroup, and 2 cpus per cgroup, we observe that two cores each 
+    execute 1 proc and two cores execute 3 procs. When added to cgroups, time-sharing
+    is similarly incorrect. However, incorrect time-sharing only happen occasionally,
+    NOT always.
 
     It is unclear why this is the case. 
 
@@ -108,9 +117,17 @@ Using the "nprocs" program:
 
 Comparison with regular real-time group scheduling kernel:
 
-1.  Load misbalancing is still observed, when testing with "./nprocs 7". As before,
-    one core executes 1 proc, 2 cores execute 2 procs each, and the last core executes 
-    3 procs.
+1.  Load misbalancing is still observed, when testing with "./nprocs 7" and using "manual"
+    setting through sched_setscheduler(). As before, one core executes 1 proc, 2 cores 
+    execute 2 procs each, and the last core executes 3 procs. 
+    
+    In a rare case, two cores each execute 1 proc and 1 core execute 2 procs, and 1 core 
+    executing 4 procs. This happens with 8 procs, 1 cgroup, 2 cpus per cgroup. Although 
+    in this run, load-balancing between the two cpus in the cgroup seems to be correct.
+
+    If scheduling policy is set through schedtool, similar load-misbalance is observed,
+    just as the no-check kernel -- three procs each grab one cpu exclusively, while the
+    remaining procs share a cpu. When added to cgroups, time-sharing is also unbalanced.
 
 2.  As before, load-misbalance is also observed when a cgroup has more than 1 proc and
     more than 1 cpu. 
