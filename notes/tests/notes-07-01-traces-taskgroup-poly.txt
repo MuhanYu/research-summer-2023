@@ -72,7 +72,13 @@ Using the "nprocs" program:
     1 or 2 cgroups, and 1 or 2 cpus per cgroup. Mis-balance can happen before the
     procs were added to the cgroups in the same manner described above (1, 2, 2, 3
     procs per cpu, respectively). Mis-balance was also observed after the processes
-    were added to the cgroups
+    were added to the cgroups. Note that, by default, cpuset.sched_load_balance flag
+    for the cpuset controller is set, meaning that the scheduler load-balances
+    within each cpuset cgroup. In trials with 8 procs, 2 cgroups, and 2 cpus per 
+    cgroup, sometimes one proc uses one cpu exclusively for several periods, while
+    the other three procs have to share the one remaining processor equally during 
+    the said periods. In trails with 8 procs, 1 cgroup, and 1 cpu per cgroup, the 
+    runtime is evenly divided between 8 procs equally.
 
     It is unclear why this is the case. 
 
@@ -98,7 +104,12 @@ Using the "nprocs" program:
     might be added to their cgroups at very different times.
 
 
-Using Prof. Sudvarg's program:
+Comparison with regular real-time group scheduling kernel:
+
+
+
+
+Using Prof. Sudvarg's program to test the "no-check" kernel:
 
 1.  
 

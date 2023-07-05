@@ -2,8 +2,10 @@
 
 #####################################################################
 # run.sh: 
-# Trace processes created by nprocs, create and add them to 
-# cpu and cpuset cgroups for investigating CONFIG_RT_GROUP_SCHED.
+# Updated version for run.sh that continuously add procs from a 
+# temporary PID file, stop only until the cgroups' "tasks" files have
+# the same number of procs as spawned).
+# This version is used on the "no-check" kernel. 
 #####################################################################
 
 temp_proc_file="procs_temp.txt"
@@ -21,11 +23,11 @@ rt_policy="R"
 # num_procs should be a multiple of num_cgroups
 # each cgroup has (num_procs/num_cgroups) processes 
 num_procs=8
-num_cgroups=1
-num_cpus_per_cgroup=1
+num_cgroups=2
+num_cpus_per_cgroup=2
 
 # cpu.rt_runtime_us interface file
-rt_runtime_us=300000
+rt_runtime_us=700000
 
 # setup cgroups
 for (( i=0; i<$num_cgroups; i++ ))
@@ -57,9 +59,19 @@ rm -f $exe_file
 # setting of sched policy? (via sched_setscheduler()?)
 if [ $manual -eq 1 ]
 then
-    gcc -o $exe_file -DCMANUAL $source_file
+    if [ "$rt_policy" == "F" ]
+    then
+        gcc -o $exe_file -DCMANUAL -DFIFO $source_file
+    else
+        gcc -o $exe_file -DCMANUAL $source_file
+    fi
 else
-    gcc -o $exe_file $source_file
+    if [ "$rt_policy" == "F" ]
+    then
+        gcc -o $exe_file -DFIFO $source_file
+    else
+        gcc -o $exe_file $source_file
+    fi
 fi
 
 rm -f $trace_file
@@ -69,11 +81,11 @@ trace_pid=0
 if [ $manual -eq 1 ]
 then
     trace-cmd record -e sched_switch \
-    -o m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
-    ./nprocs 7 &> /dev/null &
+    -o  safeadd.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    ./nprocs $((num_procs-1)) &> /dev/null &
 else
     trace-cmd record -e sched_switch \
-    -o ${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    -o safeadd.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../schedtool/schedtool -${rt_policy} -p 90 -e ./$exe_file $((num_procs-1)) &> /dev/null &
 fi
 trace_pid=$!
@@ -87,15 +99,31 @@ sleep $sleep_time
 
 # add to cgroup
 index=0
-while read -r line
+while [ $index -lt $num_procs ]
 do
-    # add to cpuset cgroups
-    # each cgroup has a single effective cpu
-    echo $line > /sys/fs/cgroup/cpuset/$((index%num_cgroups))/tasks
-    # add to RT cgroups
-    echo $line > /sys/fs/cgroup/cpu,cpuacct/$((index%num_cgroups))/tasks
-    index=$((index+1))
-done < $temp_proc_file 
+    while read -r line
+    do
+        # calculate current index based on the total number of procs
+        # already in cgroups. Duplicate PIDS are not an issue because
+        # they are only generated when the process got moved to another 
+        # cgroup and then back or the PID got recycled while reading
+        index=0
+        for (( i=0; i<$num_cgroups; i++))
+        do
+            temp=$(wc -l < /sys/fs/cgroup/cpuset/$((i))/tasks)
+            index=$((index+temp))
+        done
+        if [ $index -eq $num_procs ]
+        then
+            break
+        fi
+        # add to cpuset cgroups
+        # each cgroup has a single effective cpu
+        echo $line > /sys/fs/cgroup/cpuset/$((index%num_cgroups))/tasks
+        # add to RT cgroups
+        echo $line > /sys/fs/cgroup/cpu,cpuacct/$((index%num_cgroups))/tasks
+    done < $temp_proc_file 
+done
 
 echo "added to cgroups..."
 sleep $sleep_time
@@ -111,10 +139,10 @@ echo "tracing completed..."
 
 if [ $manual -eq 1 ]
 then
-    mv m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    mv safeadd.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
 else
-    mv ${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
+    mv safeadd.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
     ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
 fi
 
