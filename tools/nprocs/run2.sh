@@ -138,10 +138,10 @@ echo "tracing completed..."
 if [ $manual -eq 1 ]
 then
     mv safeadd.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
-    ../../traces/${rt_policy}_disjoint_cpuset_chk_rt_group/
+    ../../traces/chk/${rt_policy}_disjoint_cpuset_chk_rt_group/
 else
     mv safeadd.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
-    ../../traces/${rt_policy}_disjoint_cpuset_chk_rt_group/
+    ../../traces/chk/${rt_policy}_disjoint_cpuset_chk_rt_group/
 fi
 
 # remove cgroups

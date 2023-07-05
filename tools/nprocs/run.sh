@@ -22,8 +22,8 @@ rt_policy="R"
 
 # num_procs should be a multiple of num_cgroups
 # each cgroup has (num_procs/num_cgroups) processes 
-num_procs=8
-num_cgroups=2
+num_procs=4
+num_cgroups=1
 num_cpus_per_cgroup=2
 
 # cpu.rt_runtime_us interface file
@@ -140,10 +140,10 @@ echo "tracing completed..."
 if [ $manual -eq 1 ]
 then
     mv safeadd.m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
-    ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
+    ../../traces/no_chk/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
 else
     mv safeadd.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.trace.dat \
-    ../../traces/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
+    ../../traces/no_chk/${rt_policy}_disjoint_cpuset_no_chk_rt_group/
 fi
 
 # remove cgroups
