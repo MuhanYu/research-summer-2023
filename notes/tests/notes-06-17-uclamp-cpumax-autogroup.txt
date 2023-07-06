@@ -1,8 +1,8 @@
-Notes on uclamp and autogroup
+Notes on cgroup v2 cpu controller uclamp interface files:
 
 1.  cgroup-v2 cpu controller cannot be enabled when the kernel is compiled 
-    with CONFIG_RT_GROUP_SCHED. uclamp interface files only appears when
-    kernel compiled with CONFIG_UCLAMP_TASK and CONFIG_UCLAMP_TASK_GROUP.
+    with CONFIG_RT_GROUP_SCHED. cpu.uclamp interface files only appears when
+    kernel is compiled with CONFIG_UCLAMP_TASK and CONFIG_UCLAMP_TASK_GROUP.
 
 2.  There is no way to "allocate/reserve" bandwidth/runtime for SCHED_OTHER
     or SCHED_BATCH. For regular kernel compiled with CONFIG_UCLAMP_TASK and 
@@ -16,7 +16,14 @@ Notes on uclamp and autogroup
     This interface is used for _limiting_ the processes rather than _allocating_
     runtime for them.
 
-3.  When starting with a group of SCHED_OTHER tasks and then move two processes
+Notes on cgroup v2 cpu controller cpu.max interface file:
+
+1.  
+
+    
+Notes on autogrouping:
+
+1.  When starting with a group of SCHED_OTHER tasks and then move two processes
     to SCHED_RR, the /proc fs will indicate that they now have RT scheduling 
     params. However, their autogroup membership (/proc/[pid]/autogroup) is
     unchanged. There does not seem to be a way to explicitly check for the
@@ -26,4 +33,7 @@ Notes on uclamp and autogroup
     they are given the SCHED_RR policy.
 
     The CONFIG_RT_GROUP_SCHED flag does not change this behavior.
+
+
+
 
