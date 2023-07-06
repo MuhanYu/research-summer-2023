@@ -1,0 +1,4 @@
+1.  Use two sibling cgroups to test cgroup-v2 enforcement of cpu.max interface.
+2.  Maybe use the uclamp interface as well?
+3.  Assign "sudo bash" a high rt prio and try manual vs non-manual assignment 
+    of scheduling policy.
