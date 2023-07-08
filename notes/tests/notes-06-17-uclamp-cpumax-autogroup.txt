@@ -1,3 +1,14 @@
+Notes on cgroup v1 cpu controller bandwidth control interface files:
+
+3.  For a regular kernel booted with cgroup-v1, cpu.cfs_period_us, 
+    cpu.cfs_quota_us, cpu.cfs_burst_us cannot be used to allocate bandwidth 
+    or runtime either. Especially, cfs_quota_us can be larger than cfs_period_us 
+    even within a single cgroup, in this case the processes in the cgroup are 
+    limited to more than one cpu worth of runtime within each period. This 
+    interface is used for _limiting_ the processes rather than _allocating_ 
+    runtime for them.
+
+
 Notes on cgroup v2 cpu controller uclamp interface files:
 
 1.  cgroup-v2 cpu controller cannot be enabled when the kernel is compiled 
@@ -7,20 +18,34 @@ Notes on cgroup v2 cpu controller uclamp interface files:
 2.  There is no way to "allocate/reserve" bandwidth/runtime for SCHED_OTHER
     or SCHED_BATCH. For regular kernel compiled with CONFIG_UCLAMP_TASK and 
     CONFIG_UCLAMP_TASK_GROUP and using cgroup-v2, the sum of cpu.uclamp.min
-    for two child cgroups can exceed 100%. The uclamp values are mere hints
-    to the scheduler. For regular kernel using cgroup-v1, the cpu.cfs_period_us,
-    cpu.cfs_quota_us, cpu.cfs_burst_us cannot be used to allocate bandwidth
-    or runtime either. Especially, cfs_quota_us can be larger than cfs_period_us
-    even within a single cgroup, in this case the processes in the cgroup
-    are limited to more than one cpu worth of runtime within each period.
-    This interface is used for _limiting_ the processes rather than _allocating_
-    runtime for them.
+    for two child cgroups can exceed 100% [1]. The uclamp values are mere hints
+    to the scheduler. 
+
+[1]:
+-------------------------------------------------------------------------------
+[root@muhanyupi /sys/fs/cgroup] # cat 1/cpu.uclamp.min 2/cpu.uclamp.min
+60.00
+60.00
+[root@muhanyupi /sys/fs/cgroup] # 
+-------------------------------------------------------------------------------
+
 
 Notes on cgroup v2 cpu controller cpu.max interface file:
 
-1.  
+1.  The cpu.max also allow the sum of the maximium bandwidth limits of two 
+    sibling cgroups to exceed 1. See below. 
 
-    
+[2]:
+-------------------------------------------------------------------------------
+[root@muhanyupi /sys/fs/cgroup] # echo "60000 100000" > 2/cpu.max
+[root@muhanyupi /sys/fs/cgroup] # echo "60000 100000" > 1/cpu.max
+[root@muhanyupi /sys/fs/cgroup] # cat 1/cpu.max 2/cpu.max
+60000 100000
+60000 100000
+[root@muhanyupi /sys/fs/cgroup] # 
+-------------------------------------------------------------------------------
+
+
 Notes on autogrouping:
 
 1.  When starting with a group of SCHED_OTHER tasks and then move two processes
