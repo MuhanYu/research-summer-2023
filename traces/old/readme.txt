@@ -1,6 +1,6 @@
 traces/old: archived traces generated using tools/nprocs and the corresponding
-            run_old.sh, run.sh, or run2.sh on the "check" and "no check" rt-
-            group scheduling kernels.
+            run_old.sh or run.sh on the "check" and "no check" rt-group 
+            scheduling kernels.
 
 Trace files naming:
 
@@ -10,8 +10,8 @@ Trace files naming:
 
 0.  Whether procs were added to cgroups safely (i.e. by continuously adding procs 
     from a temporary PID file, stop only until the cgroup(s)'s "tasks" files have 
-    the same number of PIDs as spawned). tools/nprocs/run.sh and tools/nprocs/run2.sh
-    use the safe add method, while run_old.sh does not.
+    the same number of PIDs as spawned). tools/nprocs/run.sh use the safe add 
+    method, while run_old.sh does not.
 
 1.  Is manual means whether the processes change their policies through 
     sched_setscheduler() ("manual"), or, the processes are launched by schedtool.

@@ -1,0 +1,77 @@
+traces/load_imbalance:
+
+This directory contains all trace files that are used to study scheduler load 
+imbalance issues related to real-time group scheduling and cgroup-v1 cpu,cpuacct 
+and cpuset controllers. All the traces here are generated using run.sh and
+no_cgroup_run.sh.
+
+The three subdirectories are no_check_rt_group_uclamp, rt_group_uclamp, and uclamp.
+The traces in these directories were collected refer to following kernels:
+
+Linux muhanyupi 5.10.17-v7_no_check_rt_group_uclamp #12 SMP PREEMPT Thu Jul 6 00:52:03 CDT 2023 armv7l GNU/Linux
+...
+...
+
+Each subdirectory further contains three subdirectories: vanilla, high_prio_bash, 
+polyrhythm, indicating how run.sh or no_cgroup_run.sh was invoked:
+
+vanilla:        invoked in a "sudo bash" session
+high_prio_bash: invoked in a "sudo bash" session with highest static priority
+polyrhythm:     invoked by Prof. Sudvarg's polyrhythm code
+
+Under the aforementioned three subdirectory contain the trace files. There are 
+two kinds of trace files:
+
+#1: <set policy>.<policy>.<# of processes>.<# of cgroups>.<# of cpus per cgroup>.disjnt_cpuset.<rt_runtime_us>.*.dat
+
+1. <set policy>:        how RT policy was set:
+                        0 -> use tools/schedtool
+                        1 -> call sched_setschedular() in parent before fork
+                        2 -> call sched_setschedular() in children
+
+2. <policy>:            real-time scheduling policy:
+                        F -> SCHED_FIFO
+                        R -> SCHED_RR
+
+3. <# of processes>
+4. <# of cgroups>
+5. <# of cpus per cgroup>
+6. disjnt_cpuset:       refers to the fact that each cpuset cgroup is assigned
+                        one or two cpu(s) uniquely (although they do NOT have 
+                        exlusive access to the said cpus, i.e. cpuset.cpu_exclusive 
+                        flag is NOT set).
+
+7. <rt_runtime_us>:     refers to the cgroup-v1 cpu controller interface 
+                        file cpu.rt_runtime_us. For the normal rt-group 
+                        scheduling kernel, the sum of cpu.rt_runtime_us
+                        divided by cpu.rt_period_us for sibling cgroups 
+                        cannot be larger than what is available to the 
+                        parent. For the "no-check" kernel this limitation
+                        is removed.
+
+
+#2: <set policy>.<policy>.<# of processes>.*.dat
+
+1. <set policy>:        how RT policy was set:
+                        0 -> use tools/schedtool
+                        1 -> call sched_setschedular() in parent before fork
+                        2 -> call sched_setschedular() in children
+
+2. <policy>:            real-time scheduling policy:
+                        F -> SCHED_FIFO
+                        R -> SCHED_RR
+
+3. <# of processes>
+
+
+Examples:
+
+traces/load_imbalance/uclamp/high_prio_bash/1m.R.8p.2cg.2cpupcg.disjnt_cpuset.300000us.1.dat
+
+A trace file generated from a 99 static priority sudo bash shell on a uclamp
+kernel. The processes obtained SCHED_RR policy from their parent's call to
+sched_setschedular() before fork(). Eight processes were spawned in total,
+and placed in two cgroup-v1 cpu and cpuset cgroups. The cpu cgroup has a 
+real-time runtime of 300000 microseconds, while the cpuset cgroups each have
+assigned cpus. This is the first trace file of (possibly) many files with
+the same parameters.

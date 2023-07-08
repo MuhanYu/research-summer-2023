@@ -1,5 +1,5 @@
 traces/old/no_chk:  archived traces generated using tools/nprocs and the 
-                    corresponding run_old.sh, run.sh, or run2.sh on a 
+                    corresponding run_old.sh or run.sh on a 
                     5.10.17-v7_no_check_rt_group_uclamp kernel.
 
                     The behavior is mostly the same as with the 
@@ -19,8 +19,8 @@ Observations:
     by the bash script, and subsequently added to the cgroup. The other four 
     procs that didn't get to run initially were not added. Therefore, these 
     stray procs hog up all four CPUs when the other four procs were in the 
-    cgroups, not being scheduled any runtime. Using the new run.sh and run2.sh
-    elimicates this.
+    cgroups, not being scheduled any runtime. Using the new run.sh
+    eliminates this issue.
 
 2.  Load balancing when the nprocs program is executed by schedtool or if the
     parent process calls sched_setschedular() (instead of the child processes
