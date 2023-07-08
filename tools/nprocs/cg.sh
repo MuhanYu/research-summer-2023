@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #####################################################################
-# run.sh: 
-# Updated version for run.sh that continuously add procs from a 
+# cg.sh: 
+# Updated version for run_old.sh that continuously add procs from a 
 # temporary PID file, stop only until the cgroup(s)'s "tasks" files 
 # have the same number of procs as spawned).
 #
-# Usage: ./run.sh <chk/no_chk> <trace file index #>
+# Usage: ./cg.sh <chk/no_chk> <trace file index #>
 #####################################################################
 
 # const parameters
@@ -90,11 +90,11 @@ trace_pid=0
 if [ $manual -eq 0 ]
 then
     trace-cmd record -e sched_switch \
-    -o  ${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${2}.dat \
+    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${2}.dat \
     ../schedtool/schedtool -${rt_policy} -p 90 -e ./${exe_file} $((num_procs-1)) &> /dev/null &
 else
     trace-cmd record -e sched_switch \
-    -o  ${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${2}.dat \
+    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${2}.dat \
     ./${exe_file} $((num_procs-1)) &> /dev/null &
 fi
 trace_pid=$!
@@ -145,7 +145,7 @@ wait $trace_pid
 echo "tracing completed..."
 
 # move trace file to the traces directory
-mv cgrp.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.disjnt_cpuset.${rt_runtime_us}us.${2}.dat \
+mv cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.disjnt_cpuset.${rt_runtime_us}us.${2}.dat \
 ${output_directory}/
 
 # remove cgroups
