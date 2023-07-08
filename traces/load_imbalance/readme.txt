@@ -10,7 +10,7 @@ The traces in these directories were collected refer to following kernels:
 
 Linux muhanyupi 5.10.17-v7_no_check_rt_group_uclamp #12 SMP PREEMPT Thu Jul 6 00:52:03 CDT 2023 armv7l GNU/Linux
 ...
-...
+Linux muhanyupi 5.10.17-v7_uclamp #17 SMP PREEMPT Thu Jul 6 03:20:34 CDT 2023 armv7l GNU/Linux
 
 Each subdirectory further contains three subdirectories: vanilla, high_prio_bash, 
 polyrhythm, indicating how run.sh or no_cgroup_run.sh was invoked:
