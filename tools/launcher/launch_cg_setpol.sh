@@ -2,7 +2,7 @@
 
 #####################################################################
 # launch.sh: 
-# Driver script for launcher. Used to launch tools/setpolicy.sh and
+# Driver script for launcher. Executes tools/setpolicy.sh and
 # tools/cgroup.sh
 #
 # Usage: ./launch_cg_setpol.sh <trace file index #> 
