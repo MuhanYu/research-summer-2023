@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #####################################################################
-# cg.sh: 
+# cgroup.sh: 
 # Updated version for run_old.sh that continuously add procs from a 
 # temporary PID file, stop only until the cgroup(s)'s "tasks" files 
 # have the same number of procs as spawned).
 #
-# Usage: ./cg.sh <chk/no_chk> <trace file index #>
+# Usage: ./cgroup.sh <trace file index #> [output directory] 
 #####################################################################
 
 # const parameters
@@ -15,15 +15,20 @@ source_file="nprocs.c"
 exe_file="nprocs"
 num_cpus=4
 
-output_directory="../../traces/load_imbalance/$1/vanila"
+if [[ $# -eq 2 ]]; then
+    output_directory=$2
+else
+    output_directory="../../traces/load_imbalance/uclamp/sudo_bash"
 
 sleep_time=15
 
+rt_priority=90
 rt_policy="R"
 
-manual=1    # 0 -> use schedtool
-            # 1 -> call sched_setschedular() in parent before fork()
-            # 2 -> call sched_setschedular() in children
+manual=1    # 0 -> use tools/schedtool/schedtool
+            # 1 -> use tools/launcher/launcher
+            # 2 -> call sched_setschedular() in parent before fork()
+            # 3 -> call sched_setschedular() in children
 
 # num_procs should be a multiple of num_cgroups
 # each cgroup has (num_procs/num_cgroups) processes 
@@ -49,7 +54,7 @@ do
     do
         cpuset+="${cpu} "
         counter=$((counter+1))
-        if [ $counter == $num_cpus_per_cgroup ]
+        if [[ $counter -eq $num_cpus_per_cgroup ]]
         then
             break
         fi
@@ -64,20 +69,20 @@ rm -f $exe_file
 
 # should we compile the module for manual
 # setting of scheduling policy? (via sched_setscheduler()?)
-if [ $manual -eq 0 ]; then      # schedtool
-    if [ "$rt_policy" == "F" ]; then
+if [[ $manual -eq 0 || $manual -eq 1 ]]; then   # schedtool
+    if [[ $rt_policy == "F" ]]; then
         gcc -o $exe_file -DFIFO $source_file
     else
         gcc -o $exe_file $source_file
     fi
-elif [ $manual -eq 1 ]; then    # parent call
-    if [ "$rt_policy" == "F" ]; then
+elif [[ $manual -eq 2 ]]; then                  # parent call
+    if [[ $rt_policy == "F" ]]; then
         gcc -o $exe_file -DPMANUAL -DFIFO $source_file
     else
         gcc -o $exe_file -DPMANUAL $source_file
     fi
-elif [ $manual -eq 2 ]; then    # child call
-    if [ "$rt_policy" == "F" ]; then
+elif [[ $manual -eq 3 ]]; then                  # child call
+    if [[ $rt_policy == "F" ]]; then
         gcc -o $exe_file -DCMANUAL -DFIFO $source_file
     else
         gcc -o $exe_file -DCMANUAL $source_file
@@ -87,14 +92,17 @@ fi
 rm -f $temp_proc_file
 
 trace_pid=0
-if [ $manual -eq 0 ]
-then
+if [[ $manual -eq 0 ]]; then
     trace-cmd record -e sched_switch \
-    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${2}.dat \
-    ../schedtool/schedtool -${rt_policy} -p 90 -e ./${exe_file} $((num_procs-1)) &> /dev/null &
+    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${1}.dat \
+    ../schedtool/schedtool -${rt_policy} -p $rt_priority -e ./${exe_file} $((num_procs-1)) &> /dev/null &
+elif [[ $manual -eq 1 ]]; then
+    trace-cmd record -e sched_switch \
+    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${1}.dat \
+    ../launcher/launcher 1 -1 1 $rt_priority 2 ./${exe_file} $((num_procs-1)) &> /dev/null &
 else
     trace-cmd record -e sched_switch \
-    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${2}.dat \
+    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${1}.dat \
     ./${exe_file} $((num_procs-1)) &> /dev/null &
 fi
 trace_pid=$!
@@ -108,7 +116,7 @@ sleep $sleep_time
 
 # add to cgroup
 index=0
-while [ $index -lt $num_procs ]
+while [[ $index -lt $num_procs ]]
 do
     while read -r line
     do
@@ -122,7 +130,7 @@ do
             temp=$(wc -l < /sys/fs/cgroup/cpuset/$i/tasks)
             index=$((index+temp))
         done
-        if [ $index -eq $num_procs ]
+        if [[ $index -eq $num_procs ]]
         then
             break
         fi
@@ -145,7 +153,7 @@ wait $trace_pid
 echo "tracing completed..."
 
 # move trace file to the traces directory
-mv cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.disjnt_cpuset.${rt_runtime_us}us.${2}.dat \
+mv cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.disjnt_cpuset.${rt_runtime_us}us.${1}.dat \
 ${output_directory}/
 
 # remove cgroups
