@@ -10,15 +10,16 @@
 #####################################################################
 
 # const parameters
-temp_proc_file="procs_temp.txt"
-source_file="nprocs.c"
+temp_proc_file="/home/pi/research/tools/nprocs/procs_temp.txt"
+source_file="/home/pi/research/tools/nprocs/nprocs.c"
 exe_file="nprocs"
 num_cpus=4
 
 if [[ $# -eq 2 ]]; then
     output_directory=$2
 else
-    output_directory="../../traces/load_imbalance/uclamp/sudo_bash"
+    output_directory="/home/pi/research/traces/load_imbalance/uclamp/sudo_bash/"
+fi
 
 sleep_time=15
 
@@ -95,15 +96,17 @@ trace_pid=0
 if [[ $manual -eq 0 ]]; then
     trace-cmd record -e sched_switch \
     -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${1}.dat \
-    ../schedtool/schedtool -${rt_policy} -p $rt_priority -e ./${exe_file} $((num_procs-1)) &> /dev/null &
+    /home/pi/research/tools/schedtool -${rt_policy} -p $rt_priority -e \
+    /home/pi/research/tools/nproc/${exe_file} $((num_procs-1)) &> /dev/null &
 elif [[ $manual -eq 1 ]]; then
     trace-cmd record -e sched_switch \
     -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${1}.dat \
-    ../launcher/launcher 1 -1 1 $rt_priority 2 ./${exe_file} $((num_procs-1)) &> /dev/null &
+    ../launcher/launcher 1 -1 1 $rt_priority 2 \
+    /home/pi/research/tools/nproc/${exe_file} $((num_procs-1)) &> /dev/null &
 else
     trace-cmd record -e sched_switch \
     -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${1}.dat \
-    ./${exe_file} $((num_procs-1)) &> /dev/null &
+    /home/pi/research/tools/nproc/${exe_file} $((num_procs-1)) &> /dev/null &
 fi
 trace_pid=$!
 
@@ -154,7 +157,7 @@ echo "tracing completed..."
 
 # move trace file to the traces directory
 mv cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.disjnt_cpuset.${rt_runtime_us}us.${1}.dat \
-${output_directory}/
+${output_directory}
 
 # remove cgroups
 for (( i=0; i<$num_cgroups; i++ ))

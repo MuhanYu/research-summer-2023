@@ -76,6 +76,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <sys/wait.h>
+
 /* Globals */
 
 int g_argc;        // Number of command-line arguments
@@ -287,22 +289,30 @@ int main(int argc, char *argv[]) {
             if (pid) {
                 printf("Forked with PID %d\n", pid);
 
-                // Set core affinity
-                cpu_set_t mask;
-                CPU_ZERO(&mask);
-                CPU_SET(core, &mask);
-                if (sched_setaffinity(pid, sizeof(mask), &mask)) {
-                    parent_exit("Failed to set CPU affinity to core %d\n",
-                                core);
-                }
-                printf("Pinned to core %d\n", core);
-
-                // Set priority
-                if (priority >= 0) {
-                    if (sched_setscheduler(pid, RTSCHED, &sp)) {
-                        parent_exit(
-                            "Failed to set real-time scheduling policy!\n");
+                if (core != -1) {
+                    // Set core affinity
+                    cpu_set_t mask;
+                    CPU_ZERO(&mask);
+                    CPU_SET(core, &mask);
+                    if (sched_setaffinity(pid, sizeof(mask), &mask)) {
+                        parent_exit("Failed to set CPU affinity to core %d\n",
+                                    core);
                     }
+                    printf("Pinned to core %d\n", core);
+
+                    // Set priority
+                    if (priority >= 0) {
+                        if (sched_setscheduler(pid, RTSCHED, &sp)) {
+                            parent_exit(
+                                "Failed to set real-time scheduling policy!\n");
+                        }
+                    }
+                }
+
+                else {
+                    // core == -1
+                    // do not set CPU affinity
+                    printf("Program NOT pinned to any core\n");
                 }
 
                 // Set real-time scheduling group
@@ -454,9 +464,13 @@ int main(int argc, char *argv[]) {
         write(pipefd[1], &status_good, 1);
     }
 
+    while (wait(NULL) > 0);
+
+    return 0;
+
     // Exec shell
-    printf(
-        "Executing basic shell. You can launch another shell, e.g. "
-        "/bin/bash\n");
-    execlp("sh", "sh", (char *)NULL);
+    // printf(
+    //     "Executing basic shell. You can launch another shell, e.g. "
+    //     "/bin/bash\n");
+    // execlp("sh", "sh", (char *)NULL);
 }

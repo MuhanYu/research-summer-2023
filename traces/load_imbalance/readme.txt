@@ -48,7 +48,12 @@ sudo_bash:
 
 high_prio_bash:     
     cgroup.sh and setpolicy.sh are launched in a sudo bash session with static
-    priority of 99
+    priority of 91, using "chrt -p 91 <pid>". E.g.:
+
+    pi@muhanyupi:~/research/tools/schedtool $ sudo chrt -p 99 8097
+    pi@muhanyupi:~/research/tools/schedtool $ ./schedtool 8097
+    PID  8097: PRIO  91, POLICY R: SCHED_RR      , NICE   0, AFFINITY 0xf
+
 
 launch_cg_setpol:           
     cgroup.sh and setpolicy.sh are launched by tools/launcher/launch_cg_setpol.sh

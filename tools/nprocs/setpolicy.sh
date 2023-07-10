@@ -11,20 +11,22 @@
 #####################################################################
 
 # const variables
-source_file="nprocs.c"
+source_file="/home/pi/research/tools/nprocs/nprocs.c"
 exe_file="nprocs"
 
+output_directory=""
 if [[ $# -eq 2 ]]; then
     output_directory=$2
 else
-    output_directory="../../traces/load_imbalance/uclamp/sudo_bash"
+    output_directory="../../traces/load_imbalance/uclamp/sudo_bash/"
+fi
 
 trace_time=30
 
 rt_priority=90
 rt_policy="R"
 
-manual=1    # 0 -> use tools/schedtool/schedtool
+manual=0    # 0 -> use tools/schedtool/schedtool
             # 1 -> use tools/launcher/launcher
             # 2 -> call sched_setschedular() in parent before fork()
             # 3 -> call sched_setschedular() in children
@@ -60,20 +62,26 @@ if [[ $manual -eq 0 ]]
 then
     trace-cmd record -e sched_switch \
     -o  setpo.${manual}m.${rt_policy}.${num_procs}p.${trace_time}s.${1}.dat \
-    ../schedtool/schedtool -${rt_policy} -p 90 -e ./${exe_file} $((num_procs-1)) &> /dev/null &
+    /home/pi/research/tools/schedtool -${rt_policy} -p $rt_priority -e \
+    /home/pi/research/tools/nproc/${exe_file} $((num_procs-1)) &> /dev/null &
 elif [[ $manual -eq 1 ]]; then
     trace-cmd record -e sched_switch \
     -o  setpo.${manual}m.${rt_policy}.${num_procs}p.${trace_time}s.${1}.dat \
-    ../launcher/launcher 1 -1 1 $rt_priority 2 ./${exe_file} $((num_procs-1)) &> /dev/null &
+    /home/pi/research/tools/launcher/launcher 1 0 1 $rt_priority 2 \
+    /home/pi/research/tools/nproc/${exe_file} $((num_procs-1)) -1 &> /dev/null &
 else
     trace-cmd record -e sched_switch \
     -o  setpo.${manual}m.${rt_policy}.${num_procs}p.${trace_time}s.${1}.dat \
-    ./${exe_file} $((num_procs-1)) &> /dev/null &
+    /home/pi/research/tools/nproc/${exe_file} $((num_procs-1)) &> /dev/null &
 fi
 trace_pid=$!
 
+echo "tracing started..."
 
 sleep $trace_time
+
+killall -s SIGKILL $exe_file
+echo "SIGKILL sent..."
 
 # wait for the tracing process to complete (i.e.,
 # when all nprocs process are terminated by SIGKILL)
@@ -81,7 +89,4 @@ wait $trace_pid
 echo "tracing completed..."
 
 # move trace file to the traces directory
-mv setpo.${manual}m.${rt_policy}.${num_procs}p.${trace_time}s.${1}.dat \
-${output_directory}/set_policy_traces/
-
-
+mv setpo.${manual}m.${rt_policy}.${num_procs}p.${trace_time}s.${1}.dat ${output_directory}
