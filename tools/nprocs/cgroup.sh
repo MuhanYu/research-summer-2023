@@ -12,7 +12,9 @@
 # const parameters
 temp_proc_file="/home/pi/research/tools/nprocs/procs_temp.txt"
 source_file="/home/pi/research/tools/nprocs/nprocs.c"
-exe_file="nprocs"
+exe_file="/home/pi/research/tools/nprocs/nprocs"
+prog_name="nprocs"
+proc_placement_file="proc_placement.txt"
 num_cpus=4
 
 if [[ $# -eq 2 ]]; then
@@ -21,12 +23,14 @@ else
     output_directory="/home/pi/research/traces/load_imbalance/uclamp/sudo_bash/"
 fi
 
+generate_proc_placement=0
+
 sleep_time=15
 
 rt_priority=90
 rt_policy="R"
 
-manual=1    # 0 -> use tools/schedtool/schedtool
+manual=3    # 0 -> use tools/schedtool/schedtool
             # 1 -> use tools/launcher/launcher
             # 2 -> call sched_setschedular() in parent before fork()
             # 3 -> call sched_setschedular() in children
@@ -95,27 +99,35 @@ rm -f $temp_proc_file
 trace_pid=0
 if [[ $manual -eq 0 ]]; then
     trace-cmd record -e sched_switch \
-    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${1}.dat \
-    /home/pi/research/tools/schedtool -${rt_policy} -p $rt_priority -e \
-    /home/pi/research/tools/nproc/${exe_file} $((num_procs-1)) &> /dev/null &
+    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.disjoint.${rt_runtime_us}us.${sleep_time}s.${1}.dat \
+    /home/pi/research/tools/schedtool/schedtool -${rt_policy} -p $rt_priority -e \
+    ${exe_file} $((num_procs-1)) &> /dev/null &
 elif [[ $manual -eq 1 ]]; then
     trace-cmd record -e sched_switch \
-    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${1}.dat \
-    ../launcher/launcher 1 -1 1 $rt_priority 2 \
-    /home/pi/research/tools/nproc/${exe_file} $((num_procs-1)) &> /dev/null &
+    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.disjoint.${rt_runtime_us}us.${sleep_time}s.${1}.dat \
+    /home/pi/research/tools/launcher/launcher 1 0 1 $rt_priority 2 \
+    ${exe_file} $((num_procs-1)) -1 &> /dev/null &
 else
     trace-cmd record -e sched_switch \
-    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.${rt_runtime_us}us.${1}.dat \
-    /home/pi/research/tools/nproc/${exe_file} $((num_procs-1)) &> /dev/null &
+    -o  cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.disjoint.${rt_runtime_us}us.${sleep_time}s.${1}.dat \
+    ${exe_file} $((num_procs-1)) &> /dev/null &
 fi
 trace_pid=$!
 
 echo "tracing started..."
 sleep $sleep_time
 
-killall -s SIGUSR1 $exe_file
+killall -s SIGUSR1 $prog_name
 echo "SIGUSR1 sent..."
 sleep $sleep_time
+
+# print cpuset.cpus to temp proc_placement file
+if [[ generate_proc_placement -eq 1 ]]; then
+    for (( i=0; i<$num_cgroups; i++ ))
+    do
+        echo " cgroup $i cpuset.cpus: $(cat /sys/fs/cgroup/cpuset/$i/cpuset.cpus)" > $proc_placement
+    done
+fi
 
 # add to cgroup
 index=0
@@ -141,13 +153,16 @@ do
         echo $line > /sys/fs/cgroup/cpuset/$((index%num_cgroups))/tasks
         # add to RT cgroups
         echo $line > /sys/fs/cgroup/cpu,cpuacct/$((index%num_cgroups))/tasks
+        if [[ generate_proc_placement -eq 1 ]]; then
+            echo "$line -> cgroup $((index%num_cgroups))" > $proc_placement
+        fi
     done < $temp_proc_file 
 done
 
 echo "added to cgroups..."
 sleep $sleep_time
 
-killall -s SIGKILL $exe_file
+killall -s SIGKILL $prog_name
 echo "SIGKILL sent..."
 
 # wait for the tracing process to complete (i.e.,
@@ -156,8 +171,13 @@ wait $trace_pid
 echo "tracing completed..."
 
 # move trace file to the traces directory
-mv cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.disjnt_cpuset.${rt_runtime_us}us.${1}.dat \
+mv cg.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.disjoint.${rt_runtime_us}us.${sleep_time}s.${1}.dat \
 ${output_directory}
+
+if [[ generate_proc_placement -eq 1 ]]; then
+    mv $proc_placement \
+    ${output_directory}plmnt.${manual}m.${rt_policy}.${num_procs}p.${num_cgroups}cg.${num_cpus_per_cgroup}cpupcg.disjoint.${rt_runtime_us}us.${sleep_time}s.${1}.txt
+fi
 
 # remove cgroups
 for (( i=0; i<$num_cgroups; i++ ))

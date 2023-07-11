@@ -29,7 +29,7 @@
 #endif
 
 #define ITERS               2000000
-#define TEMP_PROCS_FILE     "procs_temp.txt"
+#define TEMP_PROCS_FILE     "/home/pi/research/tools/nprocs/procs_temp.txt"
 #define MAX_BUF             10
 
 #define OPT_PARENT  0

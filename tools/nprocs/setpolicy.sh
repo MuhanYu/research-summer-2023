@@ -12,13 +12,14 @@
 
 # const variables
 source_file="/home/pi/research/tools/nprocs/nprocs.c"
-exe_file="nprocs"
+exe_file="/home/pi/research/tools/nprocs/nprocs"
+prog_name="nprocs"
 
 output_directory=""
 if [[ $# -eq 2 ]]; then
     output_directory=$2
 else
-    output_directory="../../traces/load_imbalance/uclamp/sudo_bash/"
+    output_directory="../../traces/load_imbalance/uclamp/high_prio_bash/"
 fi
 
 trace_time=30
@@ -58,21 +59,20 @@ elif [[ $manual -eq 3 ]]; then                  # child call
 fi
 
 trace_pid=0
-if [[ $manual -eq 0 ]]
-then
+if [[ $manual -eq 0 ]]; then
     trace-cmd record -e sched_switch \
     -o  setpo.${manual}m.${rt_policy}.${num_procs}p.${trace_time}s.${1}.dat \
-    /home/pi/research/tools/schedtool -${rt_policy} -p $rt_priority -e \
-    /home/pi/research/tools/nproc/${exe_file} $((num_procs-1)) &> /dev/null &
+    /home/pi/research/tools/schedtool/schedtool -${rt_policy} -p $rt_priority -e \
+    ${exe_file} $((num_procs-1)) &> /dev/null &
 elif [[ $manual -eq 1 ]]; then
     trace-cmd record -e sched_switch \
     -o  setpo.${manual}m.${rt_policy}.${num_procs}p.${trace_time}s.${1}.dat \
     /home/pi/research/tools/launcher/launcher 1 0 1 $rt_priority 2 \
-    /home/pi/research/tools/nproc/${exe_file} $((num_procs-1)) -1 &> /dev/null &
+    ${exe_file} $((num_procs-1)) -1 &> /dev/null &
 else
     trace-cmd record -e sched_switch \
     -o  setpo.${manual}m.${rt_policy}.${num_procs}p.${trace_time}s.${1}.dat \
-    /home/pi/research/tools/nproc/${exe_file} $((num_procs-1)) &> /dev/null &
+    ${exe_file} $((num_procs-1)) &> /dev/null &
 fi
 trace_pid=$!
 
@@ -80,7 +80,7 @@ echo "tracing started..."
 
 sleep $trace_time
 
-killall -s SIGKILL $exe_file
+killall -s SIGKILL $prog_name
 echo "SIGKILL sent..."
 
 # wait for the tracing process to complete (i.e.,

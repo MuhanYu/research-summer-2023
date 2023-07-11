@@ -35,7 +35,7 @@ The three subdirectories are no_check_rt_group_uclamp, rt_group_uclamp, and ucla
 The traces in these directories were collected refer to following kernels:
 
 Linux muhanyupi 5.10.17-v7_no_check_rt_group_uclamp #12 SMP PREEMPT Thu Jul 6 00:52:03 CDT 2023 armv7l GNU/Linux
-...
+Linux muhanyupi 5.10.17-v7_rt_group_uclamp #14 SMP PREEMPT Thu Jul 6 02:11:41 CDT 2023 armv7l GNU/Linux
 Linux muhanyupi 5.10.17-v7_uclamp #17 SMP PREEMPT Thu Jul 6 03:20:34 CDT 2023 armv7l GNU/Linux
 
 
@@ -54,9 +54,9 @@ high_prio_bash:
     pi@muhanyupi:~/research/tools/schedtool $ ./schedtool 8097
     PID  8097: PRIO  91, POLICY R: SCHED_RR      , NICE   0, AFFINITY 0xf
 
-
 launch_cg_setpol:           
-    cgroup.sh and setpolicy.sh are launched by tools/launcher/launch_cg_setpol.sh
+    cgroup.sh and setpolicy.sh are launched by tools/launcher/launch_cg_setpol.sh,
+    which itself is launched in a sudo bash shell.
 
 
 
