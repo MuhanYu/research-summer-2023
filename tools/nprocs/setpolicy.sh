@@ -19,7 +19,7 @@ output_directory=""
 if [[ $# -eq 2 ]]; then
     output_directory=$2
 else
-    output_directory="../../traces/load_imbalance/uclamp/high_prio_bash/"
+    output_directory="../../traces/load_imbalance/uclamp/sudo_bash/"
 fi
 
 trace_time=30
